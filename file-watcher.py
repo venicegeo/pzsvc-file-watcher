@@ -1,13 +1,17 @@
 import argparse
 import os, sys
+import boto3
 
 class FileWatcher:
-	(bucket, accessKey, privateKey) = (None, None, None)
 
 	def __init__(self, bucket, accessKey, privateKey):
+		# Initialization
 		self.bucket = bucket
 		self.accessKey = accessKey
 		self.privateKey = privateKey
+
+		# Create S3 Client
+		client = boto3.client('s3', aws_access_key_id=self.accessKey, aws_secret_access_key=self.privateKey)
 
 	def listen(self):
 		pass
@@ -18,26 +22,29 @@ class FileWatcher:
 	def ingest(self):
 		pass
 
+	def persistIngest(self):
+		pass
+
 	def parseGlobalVars(self):
 		pass
 
 def main():
-	# Required Inputs
+	# Required inputs
 	(bucket, accessKey, privateKey) = (None, None, None)
 
-	# Check Env Vars
+	# Check env vars
 	bucket = os.environ.get('s3.bucket.name')
 	accessKey = os.environ.get('s3.key.access')
 	privateKey = os.environ.get('s3.key.private')
 
-	# Check CLI Args, Override Env Vars if present
+	# Check CLI args, override env vars if present
 	parser = argparse.ArgumentParser(description='Ingest files based on S3 uploads')
 	parser.add_argument('-b', help='S3 Bucket Location')
 	parser.add_argument('-a', help='S3 Access Key')
 	parser.add_argument('-p', help='S3 Private Key')
 	args = parser.parse_args()
 	
-	# Assign if present
+	# Assign CLI args if present
 	if args.b is not None:
 		bucket = args.b
 	if args.a is not None:
@@ -45,12 +52,12 @@ def main():
 	if args.p is not None:
 		privateKey = args.p
 
-	# Validate Arguments
-	if (bucket is None) or (accessKey is None) or (privateKey is None):
-		print 'Invalid Inputs. S3 Bucket Name, Access Key, and Private Key must be specified.'
+	# Validate arguments
+	if (bucket is None):
+		print 'Invalid Inputs. S3 bucket must be specified.'
 		sys.exit(66)
 
-	# Begin Listening
+	# Begin listening
 	fileWatcher = FileWatcher(bucket, privateKey, accessKey)
 	fileWatcher.listen()
 
