@@ -6,4 +6,5 @@ jmespath==0.9.0
 python-dateutil==2.5.0
 python-magic==0.4.10
 requests==2.9.1
+requests-toolbelt==0.6.0
 six==1.10.0

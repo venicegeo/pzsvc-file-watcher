@@ -3,6 +3,8 @@ import os, sys
 import boto3
 import atexit
 import requests
+import json
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 class FileWatcher:
 
@@ -16,9 +18,6 @@ class FileWatcher:
 		# Create S3 Client
 		self.client = boto3.client('s3', aws_access_key_id=self.accessKey, aws_secret_access_key=self.privateKey)
 
-		# Ensure the Persistence file exists. Create if not.
-		self.persistenceFile = open('IngestedFiles.txt', 'a+')
-
 	def listen(self):
 		"""Polls for new files in the S3 bucket."""
 		self.scanNewFiles()
@@ -30,10 +29,16 @@ class FileWatcher:
 			if self.isNewFile(item.get('Key')):
 				self.ingest(item.get('Key'))
 
+	def getPersistenceFile(self):
+		"""Gets a reference to the persistence file used to store names of previously ingested files."""
+		return open('IngestedFiles.txt', 'a+')
+
 	def isNewFile(self, fileName):
 		"""Checks persistence to determine if the file has been previously ingested or not."""
-		self.persistenceFile.seek(0)
-		return not fileName in self.persistenceFile.read()
+		persistenceFile = self.getPersistenceFile()
+		found = not fileName in persistenceFile.read()
+		persistenceFile.close()
+		return found
 
 	def ingest(self, fileName):
 		"""Sends an Ingest Job to Piazza Gateway for the S3 object."""
@@ -44,30 +49,32 @@ class FileWatcher:
 
 		# Get the JSON Payload for this File
 		payload = self.getIngestPayload(fileName, dataType)
+		multipart_data = MultipartEncoder(fields={'body': payload})
 
 		# Send the Request
 		response = requests.post('http://pz-gateway.cf.piazzageo.io/job', data={'body':payload })
-		if response.status_code is not request.codes.created:
-			print "Requested of file {} failed with code {}".format(fileName, response.status_code)
-		else
-			print "Ingested file {} of type {}".format(fileName, dataType)
+		if response.status_code is not requests.codes.created:
+			print "Ingest for file {} failed with code {}. Details: {}".format(fileName, response.status_code, response.text)
+		else:
 			# Persist the file name, ensuring we do not Ingest it again.
 			self.recordFile(fileName)
+			print "Successful ingest of file {} of type {}".format(fileName, dataType)
+
 
 	def getIngestPayload(self, fileName, dataType):
 		"""Gets the JSON Payload for the Gateway /job request."""
-		return """
+		return json.dumps(
 			{
-				"apiKey": "{}",
+				"apiKey": self.pzApiKey,
 				"jobType": {
 					"type": "ingest",
-					"host": "{}",
+					"host": False,
 					"data": {
 						"dataType": {
-							"type": "{}",
+							"type": dataType,
 							"location": {
 								"type": "s3",
-								"bucketName": "{}",
+								"bucketName": self.bucket,
 								"fileName": "elevation.tif",
 								"domainName": "s3.amazonaws.com"
 							}
@@ -80,25 +87,22 @@ class FileWatcher:
 						}
 					}
 				}
-			}
-		""".format(self.pzApiKey, False, dataType, self.bucket)
+			})
 
 	def recordFile(self, fileName):
 		"""Updates a record in persistence that the file has been Ingested."""
-		self.persistenceFile.write(fileName)
+		persistenceFile = self.getPersistenceFile()
+		persistenceFile.write(fileName + '\n')
+		persistenceFile.close()
 
 	def determineDataType(self, fileName):
 		"""Determines the type of file, based on extension. Used to populate the Ingest Job."""
 		name, extension = os.path.splitext(fileName)
-		if extension.lower() in ('tif', 'tiff', 'geotiff', 'tfw'):
+		if extension.lower() in ('.tif', '.tiff', '.geotiff', '.tfw'):
 			return 'raster'
-		if extension.lower() in ('laz', 'las', 'bpf'):
+		if extension.lower() in ('.laz', '.las', '.bpf'):
 			return 'pointcloud'
 		return None
-
-	def destroy(self):
-		"""Cleans up persistence file resources upon termination."""
-		self.persistenceFile.close()
 
 def main():
 	"""Instantiates a FileWatcher based on environment variables, or command line args."""
@@ -137,9 +141,6 @@ def main():
 	# Begin listening
 	fileWatcher = FileWatcher(bucket, accessKey, privateKey, pzApiKey)
 	fileWatcher.listen()
-
-	# When application terminates, ensure FileWatcher persistence buffer is flushed 
-	atexit.register(fileWatcher.destroy)
 
 if __name__ == "__main__":
 	main()
