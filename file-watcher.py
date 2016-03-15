@@ -2,6 +2,7 @@ import argparse
 import os, sys
 import boto3
 import atexit
+import requests
 
 class FileWatcher:
 
@@ -45,7 +46,13 @@ class FileWatcher:
 		payload = self.getIngestPayload(fileName, dataType)
 
 		# Send the Request
-
+		response = requests.post('http://pz-gateway.cf.piazzageo.io/job', data={'body':payload })
+		if response.status_code is not request.codes.created:
+			print "Requested of file {} failed with code {}".format(fileName, response.status_code)
+		else
+			print "Ingested file {} of type {}".format(fileName, dataType)
+			# Persist the file name, ensuring we do not Ingest it again.
+			self.recordFile(fileName)
 
 	def getIngestPayload(self, fileName, dataType):
 		"""Gets the JSON Payload for the Gateway /job request."""
@@ -78,7 +85,7 @@ class FileWatcher:
 
 	def recordFile(self, fileName):
 		"""Updates a record in persistence that the file has been Ingested."""
-		pass
+		self.persistenceFile.write(fileName)
 
 	def determineDataType(self, fileName):
 		"""Determines the type of file, based on extension. Used to populate the Ingest Job."""
