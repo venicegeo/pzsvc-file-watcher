@@ -4,23 +4,28 @@ import boto3
 import atexit
 import requests
 import json
+import threading
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 class FileWatcher:
 
-	def __init__(self, bucket, accessKey, privateKey, pzApiKey):
+	def __init__(self, bucket, accessKey, privateKey, pzApiKey, gatewayHost):
 		"""Initialization logic."""
 		self.bucket = bucket
 		self.accessKey = accessKey
 		self.privateKey = privateKey
 		self.pzApiKey = pzApiKey
+		self.gatewayHost = gatewayHost if gatewayHost is not None else 'pz-gateway.cf.piazzageo.io'
 
 		# Create S3 Client
 		self.client = boto3.client('s3', aws_access_key_id=self.accessKey, aws_secret_access_key=self.privateKey)
 
 	def listen(self):
 		"""Polls for new files in the S3 bucket."""
-		self.scanNewFiles()
+		def loop():
+			threading.Timer(5, loop).start()
+			self.scanNewFiles()
+		loop()
 
 	def scanNewFiles(self):
 		"""Checks if the bucket contains any new files."""
@@ -52,14 +57,13 @@ class FileWatcher:
 		multipart_data = MultipartEncoder(fields={'body': payload})
 
 		# Send the Request
-		response = requests.post('http://pz-gateway.cf.piazzageo.io/job', data={'body':payload })
+		response = requests.post('http://{}/job'.format(self.gatewayHost), data={'body':payload })
 		if response.status_code is not requests.codes.created:
 			print "Ingest for file {} failed with code {}. Details: {}".format(fileName, response.status_code, response.text)
 		else:
 			# Persist the file name, ensuring we do not Ingest it again.
 			self.recordFile(fileName)
 			print "Successful ingest of file {} of type {}".format(fileName, dataType)
-
 
 	def getIngestPayload(self, fileName, dataType):
 		"""Gets the JSON Payload for the Gateway /job request."""
@@ -107,7 +111,7 @@ class FileWatcher:
 def main():
 	"""Instantiates a FileWatcher based on environment variables, or command line args."""
 	# Required inputs
-	(bucket, accessKey, privateKey, pzApiKey) = (None, None, None, None)
+	(bucket, accessKey, privateKey, pzApiKey, gatewayHost) = (None, None, None, None, None)
 
 	# Check env vars
 	bucket = os.environ.get('s3.bucket.name')
@@ -121,6 +125,7 @@ def main():
 	parser.add_argument('-a', help='S3 Access Key')
 	parser.add_argument('-p', help='S3 Private Key')
 	parser.add_argument('-pz', help='Piazza API Key')
+	parser.add_argument('-g', help='Piazza Gateway host name')
 	args = parser.parse_args()
 	
 	# Assign CLI args if present
@@ -132,6 +137,8 @@ def main():
 		privateKey = args.p
 	if args.pz is not None:
 		pzApiKey = args.pz
+	if args.g is not None:
+		gatewayHost = args.g
 
 	# Validate arguments
 	if (bucket is None):
@@ -139,7 +146,8 @@ def main():
 		sys.exit(66)
 
 	# Begin listening
-	fileWatcher = FileWatcher(bucket, accessKey, privateKey, pzApiKey)
+	print "Listening for new files. This will continuously poll until the process is terminated."
+	fileWatcher = FileWatcher(bucket=bucket, accessKey=accessKey, privateKey=privateKey, pzApiKey=pzApiKey, gatewayHost=gatewayHost)
 	fileWatcher.listen()
 
 if __name__ == "__main__":
