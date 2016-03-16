@@ -21,7 +21,7 @@ class FileWatcher:
 		self.client = boto3.client('s3', aws_access_key_id=self.accessKey, aws_secret_access_key=self.privateKey)
 
 	def listen(self):
-		"""Polls for new files in the S3 bucket."""
+		"""Continuously polls for new files in the S3 bucket."""
 		def loop():
 			threading.Timer(5, loop).start()
 			self.scanNewFiles()
@@ -57,7 +57,7 @@ class FileWatcher:
 		multipart_data = MultipartEncoder(fields={'body': payload})
 
 		# Send the Request
-		response = requests.post('http://{}/job'.format(self.gatewayHost), data={'body':payload })
+		response = requests.post('http://{}/job'.format(self.gatewayHost), data=multipart_data, headers={'Content-Type': multipart_data.content_type})
 		if response.status_code is not requests.codes.created:
 			print "Ingest for file {} failed with code {}. Details: {}".format(fileName, response.status_code, response.text)
 		else:
@@ -142,7 +142,7 @@ def main():
 
 	# Validate arguments
 	if (bucket is None):
-		print 'Invalid Inputs. S3 bucket must be specified.'
+		print 'S3 bucket must be specified.'
 		sys.exit(66)
 
 	# Begin listening
