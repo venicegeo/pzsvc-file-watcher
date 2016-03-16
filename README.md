@@ -48,3 +48,7 @@ Test locally with a debug version of the Gateway:
 ```
 python file-watcher.py -b BUCKET_NAME -g localhost:8081
 ```
+
+## Persistence
+
+For simplistic persistence, this file-watcher script uses a text file on disk to track the files that it has successfully ingested to the uploader. This ensures no duplicate ingests occur. The file created will be named `IngestedFiles.txt` and will reside in the same relative directory as the `file-watcher.py` script.
