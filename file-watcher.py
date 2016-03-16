@@ -142,7 +142,7 @@ def main():
 
 	# Validate arguments
 	if (bucket is None):
-		print 'S3 bucket must be specified.'
+		print 'S3 bucket must be specified using the -b argument.'
 		sys.exit(66)
 
 	# Begin listening
