@@ -28,7 +28,7 @@ class FileWatcher:
 		self.accessKey = accessKey
 		self.privateKey = privateKey
 		self.pzApiKey = pzApiKey
-		self.gatewayHost = gatewayHost if gatewayHost is not None else 'https://https://pz-gateway.stage.geointservices.io:443'
+		self.gatewayHost = gatewayHost if gatewayHost is not None else 'https://pz-gateway.stage.geointservices.io:443'
 
 		# Create S3 Client
 		self.client = boto3.client('s3', aws_access_key_id=self.accessKey, aws_secret_access_key=self.privateKey)
