@@ -92,7 +92,7 @@ class FileWatcher:
 							"location": {
 								"type": "s3",
 								"bucketName": self.bucket,
-								"fileName": "elevation.tif",
+								"fileName": fileName,
 								"domainName": "s3.amazonaws.com"
 							}
 						},
