@@ -76,7 +76,7 @@ class FileWatcher:
 		else:
 			# Persist the file name, ensuring we do not Ingest it again.
 			self.recordFile(fileName)
-			print "Successful ingest of file {} of type {}".format(fileName, dataType)
+			print "Successful request for ingest of file {} of type {}".format(fileName, dataType)
 
 	def getIngestPayload(self, fileName, dataType):
 		"""Gets the JSON Payload for the Gateway /job request."""
