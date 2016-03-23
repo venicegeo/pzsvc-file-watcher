@@ -46,7 +46,7 @@ python file-watcher.py -b BUCKET_NAME
 Test locally with a debug version of the Gateway:
 
 ```
-python file-watcher.py -b BUCKET_NAME -g localhost:8081
+python file-watcher.py -b BUCKET_NAME -g http://localhost:8081
 ```
 
 ## Persistence

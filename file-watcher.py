@@ -28,7 +28,7 @@ class FileWatcher:
 		self.accessKey = accessKey
 		self.privateKey = privateKey
 		self.pzApiKey = pzApiKey
-		self.gatewayHost = gatewayHost if gatewayHost is not None else 'pz-gateway.cf.piazzageo.io'
+		self.gatewayHost = gatewayHost if gatewayHost is not None else 'https://https://pz-gateway.stage.geointservices.io:443'
 
 		# Create S3 Client
 		self.client = boto3.client('s3', aws_access_key_id=self.accessKey, aws_secret_access_key=self.privateKey)
@@ -70,7 +70,7 @@ class FileWatcher:
 		multipart_data = MultipartEncoder(fields={'body': payload})
 
 		# Send the Request
-		response = requests.post('http://{}/job'.format(self.gatewayHost), data=multipart_data, headers={'Content-Type': multipart_data.content_type})
+		response = requests.post('{}/job'.format(self.gatewayHost), data=multipart_data, headers={'Content-Type': multipart_data.content_type})
 		if response.status_code is not requests.codes.created:
 			print "Ingest for file {} failed with code {}. Details: {}".format(fileName, response.status_code, response.text)
 		else:
