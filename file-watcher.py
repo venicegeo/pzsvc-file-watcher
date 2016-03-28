@@ -119,6 +119,8 @@ class FileWatcher:
 			return 'raster'
 		if extension.lower() in ('.laz', '.las', '.bpf'):
 			return 'pointcloud'
+		if extension.lower() in ('.zip'):
+			return 'shapefile'
 		return None
 
 def main():
