@@ -40,13 +40,13 @@ python file-watcher.py --help
 Listen to an open S3 bucket:
 
 ```
-python file-watcher.py -b BUCKET_NAME
+python file-watcher.py -b BUCKET_NAME -a[AWS Access Key ID] -p[AWS Secret Access Key]
 ```
 
 Test locally with a debug version of the Gateway:
 
 ```
-python file-watcher.py -b BUCKET_NAME -g http://localhost:8081
+python file-watcher.py -b BUCKET_NAME -g http://localhost:8081 -a[AWS Access Key ID] -p[AWS Secret Access Key]
 ```
 
 ## Persistence
