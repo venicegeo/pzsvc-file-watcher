@@ -54,6 +54,7 @@ class FileWatcher:
 	def isNewFile(self, fileName):
 		"""Checks persistence to determine if the file has been previously ingested or not."""
 		persistenceFile = self.getPersistenceFile()
+		persistenceFile.seek(0)
 		found = not fileName in persistenceFile.read()
 		persistenceFile.close()
 		return found
