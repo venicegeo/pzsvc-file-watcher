@@ -24,12 +24,13 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 class FileWatcher:
 
-    def __init__(self, bucket, accessKey, privateKey, userName, gatewayHost):
+    def __init__(self, bucket, accessKey, privateKey, userName, password, gatewayHost):
         """Initialization logic."""
         self.bucket = bucket
         self.accessKey = accessKey
         self.privateKey = privateKey
         self.userName = userName
+        self.password = password
         self.gatewayHost = gatewayHost if gatewayHost is not None \
             else 'https://pz-gateway.stage.geointservices.io:443'
 
@@ -83,7 +84,7 @@ class FileWatcher:
             '{}/job'.format(self.gatewayHost),
             data=multipart_data,
             headers={'Content-Type': multipart_data.content_type},
-            auth=(os.environ.get('PZUSER'), os.environ.get('PZPASS')))
+            auth=(self.userName, self.password))
         if response.status_code is not requests.codes.created:
             print "Ingest for file {} failed with code {}. Details: {}".format(fileName, response.status_code, response.text)
         else:
@@ -142,13 +143,14 @@ def main():
     """Instantiates a FileWatcher based on environment variables, or command
     line args."""
     # Required inputs
-    bucket, accessKey, privateKey, userName, gatewayHost = None, None, None, None, None
+    bucket, accessKey, privateKey, userName, password, gatewayHost = None, None, None, None, None, None
 
     # Check env vars
     bucket = os.environ.get('s3.bucket.name')
     accessKey = os.environ.get('s3.key.access')
     privateKey = os.environ.get('s3.key.private')
     userName = os.environ.get('PZUSER')
+    password = os.environ.get('PZPASS')
     domain = os.environ.get('DOMAIN')
 
     if domain:
@@ -161,6 +163,7 @@ def main():
     parser.add_argument('-a', help='S3 Access Key')
     parser.add_argument('-p', help='S3 Private Key')
     parser.add_argument('-u', help='Piazza UserName')
+    parser.add_argument('-z', help='Piazza Password')
     parser.add_argument('-g', help='Piazza Gateway host name')
     args = parser.parse_args()
 
@@ -173,6 +176,8 @@ def main():
         privateKey = args.p
     if args.u is not None:
         userName = args.u
+    if args.z is not None:
+        password = args.z
     if args.g is not None:
         gatewayHost = args.g
 
@@ -189,6 +194,7 @@ def main():
         accessKey=accessKey,
         privateKey=privateKey,
         userName=userName,
+        password=password,
         gatewayHost=gatewayHost)
     fileWatcher.listen()
 
