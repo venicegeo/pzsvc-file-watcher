@@ -1,6 +1,6 @@
 ## Piazza File Watcher
 
-This script, when pointed to a S3 bucket, will continously scan the bucket for new files that [Piazza](https://github.com/venicegeo/venice/wiki/PiazzaCoreServices) is capable of ingesting; and when found, will create an [Ingest Job](https://github.com/venicegeo/venice/wiki/Pz-Ingest#example-ingest-requests) that will request the data be loaded into Piazza.
+This script, when pointed to a S3 bucket, will continously scan the bucket for new files that Piazza is capable of ingesting; and when found, will create a Load Job that will request the data be loaded into Piazza.
 
 ## Installation
 
@@ -19,7 +19,7 @@ There are two ways to configure the file-watcher script to connect to your S3 bu
 > * *s3.bucket.name*: The name of the S3 bucket to watch
 > * *s3.key.access*: The S3 access key, if required, to connect to the S3 bucket
 > * *s3.key.private*: The S3 private key, if required, to connect to the S3 bucket
-> * *pz.api.key*: The Piazza [API key](https://github.com/venicegeo/venice/wiki/Pz-Gateway#authentication-and-authorization).
+> * *pz.api.key*: The Piazza API Key
 
 ### Command Line Arguments
 
@@ -32,8 +32,8 @@ python file-watcher.py --help
 > * *-b*: The name of the S3 bucket to watch
 > * *-a*: The S3 access key, if required, to connect to the S3 bucket
 > * *-p*: The S3 private key, if required, to connect to the S3 bucket
-> * *-pz*: The Piazza [API key](https://github.com/venicegeo/venice/wiki/Pz-Gateway#authentication-and-authorization).
-> * *-g*: The endpoint of the Gateway. Defaults to `pz-gateway.cf.piazzageo.io`.
+> * *-k*: The Piazza API key
+> * *-g*: The endpoint of the Gateway. Defaults to `pz-gateway.stage.piazzageo.io`.
 
 ## Example Usage
 
