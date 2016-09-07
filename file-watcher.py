@@ -147,11 +147,8 @@ def main():
     bucket = os.environ.get('s3.bucket.name')
     accessKey = os.environ.get('s3.key.access')
     privateKey = os.environ.get('s3.key.private')
-    pzApiKey = os.environ.get('pz.api.key')
-    domain = os.environ.get('DOMAIN')
-
-    if domain:
-        gatewayHost = 'https://pz-gateway.' + domain
+    pzApiKey = os.environ.get('PZKEY')
+    pzServer = os.environ.get('PZSERVER')
 
     # Check CLI args, override env vars if present
     parser = argparse.ArgumentParser(
@@ -173,7 +170,7 @@ def main():
     if args.k is not None:
         pzApiKey = args.k
     if args.g is not None:
-        gatewayHost = args.g
+        pzServer = args.g
 
     # Validate arguments
     if (bucket is None):
@@ -182,13 +179,13 @@ def main():
 
     # Begin listening
     print "Listening for new files in AWS bucket {}.".format(bucket)
-    print "Piazza Gateway: {}".format(gatewayHost)
+    print "Piazza Gateway: {}".format(pzServer)
     fileWatcher = FileWatcher(
         bucket=bucket,
         accessKey=accessKey,
         privateKey=privateKey,
         pzApiKey=pzApiKey,
-        gatewayHost=gatewayHost)
+        gatewayHost=pzServer)
     fileWatcher.listen()
 
 if __name__ == "__main__":

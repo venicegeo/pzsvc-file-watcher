@@ -19,7 +19,8 @@ There are two ways to configure the file-watcher script to connect to your S3 bu
 > * *s3.bucket.name*: The name of the S3 bucket to watch
 > * *s3.key.access*: The S3 access key, if required, to connect to the S3 bucket
 > * *s3.key.private*: The S3 private key, if required, to connect to the S3 bucket
-> * *pz.api.key*: The Piazza API Key
+> * *PZKEY*: The Piazza API Key
+> * *PZSERVER*: The Piazza Server.
 
 ### Command Line Arguments
 
